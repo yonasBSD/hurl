@@ -6,6 +6,5 @@ edition = "2021"
 [workspace]
 
 [dependencies]
-hurl = "4.1.0"
-hurl_core = "4.1.0"
-
+hurl = { path = "../../packages/hurl" }
+hurl_core = { path = "../../packages/hurl_core" }

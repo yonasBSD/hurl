@@ -23,7 +23,7 @@ syntax match section "\[Asserts\]"
 syntax match section "\[Options\]"
 
 syntax keyword operator == != > >= < <= not
-syntax keyword query status url header cookie body jsonpath xpath regex variable duration sha256 md5 bytes
+syntax keyword query status url header cookie body jsonpath xpath regex variable duration sha256 blake3 bytes
 syntax keyword predicate startsWith endsWith matches exists includes isInteger isFloat isBoolean isString isCollection
 syntax match predicate "contains"
 syntax keyword filter count regex urlEncode urlDecode htmlEscape htmlUnescape
