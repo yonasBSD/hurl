@@ -393,7 +393,7 @@ impl HtmlFormatter {
             QueryValue::Duration => self.fmt_span("query-type", "duration"),
             QueryValue::Bytes => self.fmt_span("query-type", "bytes"),
             QueryValue::Sha256 => self.fmt_span("query-type", "sha256"),
-            QueryValue::Md5 => self.fmt_span("query-type", "md5"),
+            QueryValue::Blake3 => self.fmt_span("query-type", "blake3"),
             QueryValue::Certificate {
                 space0,
                 attribute_name: field,

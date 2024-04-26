@@ -56,7 +56,7 @@ pub fn eval_query(
         QueryValue::Duration => eval_query_duration(http_response),
         QueryValue::Bytes => eval_query_bytes(http_response, query.source_info),
         QueryValue::Sha256 => eval_query_sha256(http_response, query.source_info),
-        QueryValue::Md5 => eval_query_md5(http_response, query.source_info),
+        QueryValue::Blake3 => eval_query_blake3(http_response, query.source_info),
         QueryValue::Certificate {
             attribute_name: field,
             ..
@@ -214,15 +214,19 @@ fn eval_query_sha256(response: &http::Response, query_source_info: SourceInfo) -
     Ok(Some(bytes))
 }
 
-fn eval_query_md5(response: &http::Response, query_source_info: SourceInfo) -> QueryResult {
+fn eval_query_blake3(response: &http::Response, query_source_info: SourceInfo) -> QueryResult {
     let bytes = match response.uncompress_body() {
         Ok(s) => s,
         Err(inner) => {
             return Err(Error::new(query_source_info, inner.into(), false));
         }
     };
-    let bytes = md5::compute(bytes).to_vec();
-    Ok(Some(Value::Bytes(bytes)))
+    let mut hasher = blake3::Hasher::new();
+    hasher.update(&bytes[..]);
+    let finalize = hasher.finalize();
+    let result = finalize.as_bytes();
+    let bytes = Value::Bytes(result.to_vec());
+    Ok(Some(bytes))
 }
 
 fn eval_query_certificate(

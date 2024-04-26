@@ -273,7 +273,7 @@ fn lint_query_value(query_value: &QueryValue) -> QueryValue {
         QueryValue::Duration => QueryValue::Duration,
         QueryValue::Bytes => QueryValue::Bytes,
         QueryValue::Sha256 => QueryValue::Sha256,
-        QueryValue::Md5 => QueryValue::Md5,
+        QueryValue::Blake3 => QueryValue::Blake3,
         QueryValue::Certificate {
             attribute_name: field,
             ..

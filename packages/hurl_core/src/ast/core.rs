@@ -335,7 +335,7 @@ pub enum QueryValue {
     Duration,
     Bytes,
     Sha256,
-    Md5,
+    Blake3,
     Certificate {
         space0: Whitespace,
         attribute_name: CertificateAttributeName,

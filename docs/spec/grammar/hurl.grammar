@@ -244,7 +244,7 @@ query:
   | duration-query
   | bytes-query
   | sha256-query
-  | md5-query
+  | blake3-query
 
 status-query: "status"
 
@@ -270,7 +270,7 @@ duration-query: "duration"
 
 sha256-query: "sha256"
 
-md5-query: "md5"
+blake3-query: "blake3"
 
 bytes-query: "bytes"
 

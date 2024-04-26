@@ -48,7 +48,7 @@ fn query_value(reader: &mut Reader) -> ParseResult<QueryValue> {
             duration_query,
             bytes_query,
             sha256_query,
-            md5_query,
+            blake3_query,
             certificate_query,
         ],
         reader,
@@ -174,9 +174,9 @@ fn sha256_query(reader: &mut Reader) -> ParseResult<QueryValue> {
     Ok(QueryValue::Sha256)
 }
 
-fn md5_query(reader: &mut Reader) -> ParseResult<QueryValue> {
-    try_literal("md5", reader)?;
-    Ok(QueryValue::Md5)
+fn blake3_query(reader: &mut Reader) -> ParseResult<QueryValue> {
+    try_literal("blake3", reader)?;
+    Ok(QueryValue::Blake3)
 }
 
 fn certificate_query(reader: &mut Reader) -> ParseResult<QueryValue> {
