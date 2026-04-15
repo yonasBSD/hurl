@@ -29,12 +29,12 @@ use crate::http::{Call, Client, CredentialForwarding, FollowLocation};
 use crate::util::logger::{ErrorFormat, Logger, LoggerOptions};
 use crate::util::term::{Stderr, Stdout, WriteMode};
 
-use super::entry;
 use super::event::EventListener;
 use super::options;
 use super::result::{EntryResult, HurlResult};
 use super::runner_options::RunnerOptions;
 use super::variable::VariableSet;
+use super::{Output, entry};
 
 /// Runs a Hurl `content` and returns a [`HurlResult`] upon completion.
 ///
@@ -342,7 +342,7 @@ fn run_request(
         let mut result = entry::run(entry, current, http_client, variables, options, logger);
 
         // Check if we need to retry.
-        let mut has_error = !result.errors.is_empty();
+        let has_error = !result.errors.is_empty();
 
         // The retry threshold can only be reached with a finite positive number of retries
         let retry_max_reached = if let Some(Count::Finite(r)) = options.retry {
@@ -366,18 +366,20 @@ fn run_request(
         // When --output is overridden on a request level, we output the HTTP response only if the
         // call has succeeded. Output errors are not taken into account for retrying requests.
         if !has_error && let Some(output) = &options.output {
-            let source_info = get_output_source_info(entry);
-            if let Err(error) =
-                result.write_response(output, &options.context_dir, stdout, source_info)
-            {
-                result.errors.push(error);
-                has_error = true;
-            }
-        }
-
-        if has_error {
+            write_entry_response(
+                entry,
+                &mut result,
+                content,
+                filename,
+                output,
+                options,
+                stdout,
+                logger,
+            );
+        } else if has_error {
             log_errors(&result, content, filename, retry, logger);
         }
+
         results.push(result);
 
         // No retry, we leave the HTTP run requests loop.
@@ -410,6 +412,38 @@ fn run_request(
     }
 
     results
+}
+
+/// Writes this `entry_result` HTTP body response to the file `output`. This function
+/// can possibly mut this `entry_result` errors with I/O or unauthorized access errors.
+///
+/// A context directory (through `option`) is provided to check if write access is authorized.
+/// If there is a write error (either I/O, or unauthorized access), `content` and `input` are used
+/// to print a rich error (assert like) and `entry_result` errors are appended.
+#[allow(clippy::too_many_arguments)]
+fn write_entry_response(
+    entry: &Entry,
+    entry_result: &mut EntryResult,
+    content: &str,
+    input: Option<&Input>,
+    output: &Output,
+    options: &RunnerOptions,
+    stdout: &mut Stdout,
+    logger: &mut Logger,
+) {
+    let context_dir = &options.context_dir;
+    let source_info = get_output_source_info(entry);
+    if let Err(error) = entry_result.write_response(output, context_dir, stdout, source_info) {
+        let filename = input.map_or(String::new(), |f| f.to_string());
+        let message = error.render(
+            &filename,
+            content,
+            Some(entry_result.source_info),
+            OutputFormat::Terminal(logger.color),
+        );
+        logger.error_rich(&message);
+        entry_result.errors.push(error);
+    }
 }
 
 /// Use source_info from output option if this option has been defined
