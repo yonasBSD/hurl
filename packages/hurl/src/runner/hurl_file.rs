@@ -26,6 +26,7 @@ use hurl_core::parser;
 use hurl_core::types::{Count, Index};
 
 use crate::http::{Call, Client, CredentialForwarding, FollowLocation};
+use crate::pretty::PrettyMode;
 use crate::util::logger::{ErrorFormat, Logger, LoggerOptions};
 use crate::util::term::{Stderr, Stdout, WriteMode};
 
@@ -433,9 +434,40 @@ fn write_entry_response(
 ) {
     let context_dir = &options.context_dir;
     let source_info = get_output_source_info(entry);
-    if let Err(error) =
-        entry_result.write_response_with_context_dir(output, context_dir, stdout, source_info)
-    {
+
+    // Check if write access is allowed for this context dir.
+    let output = match output.clone().try_with(context_dir, source_info) {
+        Ok(o) => o,
+        Err(error) => {
+            let filename = input.map_or(String::new(), |f| f.to_string());
+            let message = error.render(
+                &filename,
+                content,
+                Some(entry_result.source_info),
+                OutputFormat::Terminal(logger.color),
+            );
+            logger.error_rich(&message);
+            entry_result.errors.push(error);
+            return;
+        }
+    };
+
+    // Hard-codes these values for the moment, we'll take them into account later using
+    // runner options.
+    let include_headers = false;
+    let color = false;
+    let pretty = PrettyMode::None;
+    // When we overrides output in a entry, we truncate existing files.
+    let append = false;
+    if let Err(error) = entry_result.write_response(
+        Some(&output),
+        stdout,
+        include_headers,
+        color,
+        pretty,
+        append,
+        source_info,
+    ) {
         let filename = input.map_or(String::new(), |f| f.to_string());
         let message = error.render(
             &filename,

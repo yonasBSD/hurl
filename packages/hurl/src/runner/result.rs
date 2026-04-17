@@ -27,7 +27,6 @@ use crate::http::{Call, CookieStore, CurlCmd};
 use crate::pretty;
 use crate::pretty::PrettyMode;
 use crate::pretty::json::Color;
-use crate::util::path::ContextDir;
 use crate::util::term::Stdout;
 
 use super::error::{RunnerError, RunnerErrorKind};
@@ -192,35 +191,10 @@ pub struct CaptureResult {
 impl EntryResult {
     /// Writes the last HTTP response of this entry result to this `output`.
     /// The HTTP response can be decompressed if the entry's `compressed` option has been set.
-    /// This method checks if the response has write access to this output, given a `context_dir`.
-    pub fn write_response_with_context_dir(
-        &self,
-        output: &Output,
-        context_dir: &ContextDir,
-        stdout: &mut Stdout,
-        source_info: SourceInfo,
-    ) -> Result<(), RunnerError> {
-        let Some(call) = self.calls.last() else {
-            return Ok(());
-        };
-        let response = &call.response;
-        if self.compressed {
-            let bytes = match response.uncompress_body() {
-                Ok(bytes) => bytes,
-                Err(e) => {
-                    return Err(RunnerError::new(
-                        source_info,
-                        RunnerErrorKind::Http(e),
-                        false,
-                    ));
-                }
-            };
-            output.write_with_context_dir(&bytes, stdout, context_dir, source_info)
-        } else {
-            output.write_with_context_dir(&response.body, stdout, context_dir, source_info)
-        }
-    }
-
+    /// This method doesn't check if the response has write access to this output using a context
+    /// directory. Write check access has to be made by the caller of this method
+    /// TODO: enforce this by a proper type on output?
+    #[allow(clippy::too_many_arguments)]
     pub fn write_response(
         &self,
         output: Option<&Output>,
@@ -229,24 +203,22 @@ impl EntryResult {
         color: bool,
         pretty: PrettyMode,
         append: bool,
+        source_info: SourceInfo,
     ) -> Result<(), RunnerError> {
-        let Some(call) = &self.calls.last() else {
+        let Some(call) = self.calls.last() else {
             return Ok(());
         };
 
         let response = &call.response;
-        let source_info = self.source_info;
         let mut out = Vec::new();
 
-        // If include options is set, we output the HTTP response headers with status and version
-        // (to mimic curl outputs)
         if include_headers {
             let text = response.get_status_line_headers(color);
             out.append(&mut text.into_bytes());
             out.push(b'\n');
         }
 
-        let body_bytes = if self.compressed {
+        let body = if self.compressed {
             &response
                 .uncompress_body()
                 .map_err(|e| RunnerError::new(source_info, RunnerErrorKind::Http(e), false))?
@@ -262,47 +234,32 @@ impl EntryResult {
         };
         if pretty {
             let color_pretty = if color { Color::Ansi } else { Color::NoColor };
-            match pretty::format(body_bytes, color_pretty, &mut out) {
-                Ok(_) => {}
-                Err(_) => {
-                    // We've an error trying to pretty print response output, we silently fail and
-                    // fallback on non prettifying.
-                    return self.write_response(
-                        output,
-                        stdout,
-                        include_headers,
-                        color,
-                        PrettyMode::None,
-                        append,
-                    );
-                }
+            // On pretty-print error, discard partial output and fall back to raw bytes.
+            let before_len = out.len();
+            if pretty::format(body, color_pretty, &mut out).is_err() {
+                out.truncate(before_len);
+                out.extend_from_slice(body);
             }
         } else {
-            out.extend_from_slice(body_bytes);
+            out.extend_from_slice(body);
         }
 
         // We replicate curl's checks for binary output: a warning is displayed when user hasn't
         // used `--output` option and the response is considered as a binary content. If user has used
         // `--output` whether to save to a file, or to redirect output to standard output (`--output -`)
         // we don't display any warning.
-        let output = match output {
-            None => {
-                if stdout.is_terminal() && is_binary(&out) {
-                    let message = "Binary output can mess up your terminal. Use \"--output -\" to tell Hurl to output it to your terminal anyway, or consider \"--output\" to save to a file.";
-                    let kind = RunnerErrorKind::FileWriteAccess {
-                        path: PathBuf::from(""),
-                        error: message.to_string(),
-                    };
-                    return Err(RunnerError::new(source_info, kind, false));
-                }
-                &Output::Stdout
-            }
-            Some(o) => o,
-        };
+        if output.is_none() && stdout.is_terminal() && is_binary(&out) {
+            return Err(RunnerError::new(
+                source_info,
+                RunnerErrorKind::BinaryOutput,
+                false,
+            ));
+        }
 
+        let output = output.unwrap_or(&Output::Stdout);
         output.write(&out, stdout, append).map_err(|e| {
             let kind = RunnerErrorKind::FileWriteAccess {
-                path: PathBuf::from(""),
+                path: PathBuf::from(output.to_string()),
                 error: e.to_string(),
             };
             RunnerError::new(source_info, kind, false)
@@ -320,10 +277,5 @@ impl EntryResult {
 /// and <https://github.com/curl/curl/blob/721941aadf4adf4f6aeb3f4c0ab489bb89610c36/src/tool_cb_wrt.c#L209>
 fn is_binary(bytes: &[u8]) -> bool {
     let len = min(2000, bytes.len());
-    for c in &bytes[..len] {
-        if *c == 0 {
-            return true;
-        }
-    }
-    false
+    bytes[..len].contains(&0)
 }

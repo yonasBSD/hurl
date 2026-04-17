@@ -72,6 +72,8 @@ pub enum RunnerErrorKind {
     AssertVersion {
         actual: String,
     },
+    /// The user tries to output binaries data to standard output.
+    BinaryOutput,
     ExpressionInvalidType {
         value: String,
         expecting: String,
@@ -150,6 +152,7 @@ impl DisplaySourceError for RunnerError {
             RunnerErrorKind::AssertHeaderValueError { .. } => "Assert header value".to_string(),
             RunnerErrorKind::AssertStatus { .. } => "Assert status code".to_string(),
             RunnerErrorKind::AssertVersion { .. } => "Assert HTTP version".to_string(),
+            RunnerErrorKind::BinaryOutput => "Binary output".to_string(),
             RunnerErrorKind::ExpressionInvalidType { .. } => "Invalid expression type".to_string(),
             RunnerErrorKind::FileReadAccess { .. } => "File read access".to_string(),
             RunnerErrorKind::FileWriteAccess { .. } => "File write access".to_string(),
@@ -220,6 +223,11 @@ impl DisplaySourceError for RunnerError {
             }
             RunnerErrorKind::AssertStatus { actual, .. } => {
                 let message = &format!("actual value is <{actual}>");
+                let message = error::add_carets(message, self.source_info, content);
+                color_red_multiline_string(&message)
+            }
+            RunnerErrorKind::BinaryOutput => {
+                let message = "binary output can mess up your terminal. Use \"--output -\" to tell Hurl to output it to your terminal anyway, or consider \"--output\" to save to a file";
                 let message = error::add_carets(message, self.source_info, content);
                 color_red_multiline_string(&message)
             }

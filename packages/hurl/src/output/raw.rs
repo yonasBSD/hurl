@@ -16,8 +16,10 @@
  *
  */
 use crate::pretty::PrettyMode;
-use crate::runner::{HurlResult, Output, RunnerError};
+use crate::runner::{HurlResult, Output};
 use crate::util::term::Stdout;
+
+use super::OutputError;
 
 /// Writes the `hurl_result` last response to the file `filename_out`.
 ///
@@ -33,12 +35,22 @@ pub fn write_last_body(
     filename_out: Option<&Output>,
     stdout: &mut Stdout,
     append: bool,
-) -> Result<(), RunnerError> {
+) -> Result<(), OutputError> {
     // Get the last call of the Hurl result.
     let Some(last_entry) = &hurl_result.entries.last() else {
         return Ok(());
     };
-    last_entry.write_response(filename_out, stdout, include_headers, color, pretty, append)
+    let source_info = last_entry.source_info;
+    last_entry.write_response(
+        filename_out,
+        stdout,
+        include_headers,
+        color,
+        pretty,
+        append,
+        source_info,
+    )?;
+    Ok(())
 }
 
 #[cfg(test)]

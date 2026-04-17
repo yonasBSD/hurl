@@ -15,9 +15,9 @@
  * limitations under the License.
  *
  */
-use std::fs::{File, OpenOptions};
+use std::fs::OpenOptions;
 use std::io::Write;
-use std::path::{Path, PathBuf};
+use std::path::PathBuf;
 use std::{fmt, io};
 
 use hurl_core::ast::SourceInfo;
@@ -56,6 +56,30 @@ impl Output {
         }
     }
 
+    /// Consume an output and returns a new output given a `context_dir`.
+    ///
+    /// If the output is a file, and the file is not allowed to write given this `context_dir`, this
+    /// method returns an error.
+    pub fn try_with(
+        self,
+        context_dir: &ContextDir,
+        source_info: SourceInfo,
+    ) -> Result<Self, RunnerError> {
+        let output = match self {
+            Output::Stdout => Output::Stdout,
+            Output::File(filename) => {
+                if !context_dir.is_access_allowed(&filename) {
+                    let kind = RunnerErrorKind::UnauthorizedFileAccess { path: filename };
+                    let error = RunnerError::new(source_info, kind, false);
+                    return Err(error);
+                }
+                let path = context_dir.resolved_path(&filename);
+                Output::File(path)
+            }
+        };
+        Ok(output)
+    }
+
     /// Writes these `bytes` to the output.
     ///
     /// If output is a standard output variant, `stdout` is used to write the bytes. If `append`
@@ -82,79 +106,5 @@ impl Output {
                 })
             }
         }
-    }
-
-    /// Writes these `bytes` to the output.
-    ///
-    /// If output is a standard output variant, `stdout` is used to write the bytes.
-    /// If output is a file variant, `context_dir` is used to check authorized write access.
-    pub fn write_with_context_dir(
-        &self,
-        bytes: &[u8],
-        stdout: &mut Stdout,
-        context_dir: &ContextDir,
-        source_info: SourceInfo,
-    ) -> Result<(), RunnerError> {
-        // TODO: Check if write method above can be reused
-        match self {
-            Output::Stdout => match stdout.write_all(bytes) {
-                Ok(_) => Ok(()),
-                Err(e) => {
-                    let filename = Path::new("stdout");
-                    Err(RunnerError::new_file_write_access(
-                        filename,
-                        &e.to_string(),
-                        source_info,
-                    ))
-                }
-            },
-            Output::File(filename) => {
-                if !context_dir.is_access_allowed(filename) {
-                    return Err(RunnerError::new_unauthorized_file_access(
-                        filename,
-                        source_info,
-                    ));
-                }
-                // we check if we can write to this filename and compute the new filename given this context dir.
-                let filename = context_dir.resolved_path(filename);
-                let mut file = match File::create(&filename) {
-                    Ok(file) => file,
-                    Err(e) => {
-                        return Err(RunnerError::new_file_write_access(
-                            &filename,
-                            &e.to_string(),
-                            source_info,
-                        ));
-                    }
-                };
-                match file.write_all(bytes) {
-                    Ok(_) => Ok(()),
-                    Err(e) => Err(RunnerError::new_file_write_access(
-                        &filename,
-                        &e.to_string(),
-                        source_info,
-                    )),
-                }
-            }
-        }
-    }
-}
-
-impl RunnerError {
-    /// Creates a new file write access error.
-    fn new_file_write_access(path: &Path, error: &str, source_info: SourceInfo) -> RunnerError {
-        let path = path.to_path_buf();
-        let kind = RunnerErrorKind::FileWriteAccess {
-            path,
-            error: error.to_string(),
-        };
-        RunnerError::new(source_info, kind, false)
-    }
-
-    /// Creates a new authorization access error.
-    fn new_unauthorized_file_access(path: &Path, source_info: SourceInfo) -> RunnerError {
-        let path = path.to_path_buf();
-        let kind = RunnerErrorKind::UnauthorizedFileAccess { path };
-        RunnerError::new(source_info, kind, false)
     }
 }
