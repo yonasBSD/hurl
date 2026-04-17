@@ -15,12 +15,15 @@
  * limitations under the License.
  *
  */
+mod primitives;
+
 use std::path::Path;
 
 use hurl_core::reader::{CharPos, Pos, Reader};
 
 use super::{CliOptions, CliOptionsError, Verbosity};
 use hurl_core::types::Count;
+use primitives::skip_whitespace_and_comments;
 
 #[derive(Debug)]
 struct ConfigFileError {
@@ -84,23 +87,6 @@ fn parse_config(content: &str, default_options: CliOptions) -> Result<CliOptions
     Ok(options)
 }
 
-fn skip_whitespace_and_comments(reader: &mut Reader) {
-    loop {
-        reader.read_while(|c: char| c.is_whitespace());
-        if reader.is_eof() {
-            break;
-        }
-        if reader.peek() == Some('#') {
-            // Skip comment line
-            reader.read_while(|c: char| c != '\n');
-            if reader.peek() == Some('\n') {
-                reader.read(); // consume newline
-            }
-        } else {
-            break;
-        }
-    }
-}
 /// Parse and process a single option from config file
 /// Empty lines or lines starting with `#` are ignored
 fn parse_option(reader: &mut Reader, options: &mut CliOptions) -> Result<(), ConfigFileError> {
