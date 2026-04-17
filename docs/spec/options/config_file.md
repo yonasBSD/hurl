@@ -3,7 +3,7 @@
 Options may be specified in a configuration file.
 
 The format is similar to the configuration file format used by
-[ripgrep](https://github.com/BurntSushi/ripgrep/blob/master/GUIDE.md#configuration-file).
+[curl](https://everything.curl.dev/cmdline/configfile.html).
 
 
 ### Parsing Rules
@@ -17,12 +17,9 @@ The format is similar to the configuration file format used by
 
 ### Option value
 
-- An option value may appear:
-  - either on the same line as the option, separated by `=`
-  - or on the following line (can still have empty lines between)
+- An option value must be provided on the same line as the option. It is separated by either one or more spaces or by `=`.
 - Values containing spaces or newlines must be enclosed in double quotes (").
 - Double-quoted values may span multiple lines; newlines are preserved. A quoted value ends at the next double quote (")
-- Values starting with `-` are allowed. When using the “next line” form, the next line is always interpreted as a value, not as an option.
 
 
 ### Empty Values
@@ -31,8 +28,7 @@ The following forms are equivalent and represent an empty value:
 
 --option=
 --option=""
---option
-""
+
 
 ### Errors
 
@@ -42,6 +38,7 @@ The following conditions must result in an error:
 - An option that requires a value is not provided one
 - Unclosed double quotes
 - Unquoted values containing spaces or newlines
+- characters after the closing quotes
 
 
 
@@ -54,12 +51,11 @@ $ cat $HOME/.config/hurl/config
 # Standalone flag
 --test
 
-# Provide value inline
+# Provide value after an equal
 --header=foo:bar
 
-# Provide value in the next line
---variable
-user=bob
+# Provide value after a space
+--variable user=bob
 
 # Use unnecessary quotes
 --retry="2"
@@ -75,13 +71,11 @@ line3"
 # Use empty value
 --user-agent=
 
-# Use value that starts with - using "the next-line" form
---retry
--1
+# Use = value 
+--user-agent==
+--user-agent =
+--user-agent="="
 
-# This is recommended (easier to read) to use the same line
-# for option staring with `-`
---retry=-1
 
 ```
 

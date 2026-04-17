@@ -21,11 +21,15 @@ use std::path::Path;
 
 use hurl_core::reader::{CharPos, Pos, Reader};
 
+use crate::cli::options::config_file::primitives::{
+    expect_no_value, parse_value, parse_value_separator,
+};
+
 use super::{CliOptions, CliOptionsError, Verbosity};
 use hurl_core::types::Count;
 use primitives::skip_whitespace_and_comments;
 
-#[derive(Debug)]
+#[derive(Debug, PartialEq, Eq)]
 struct ConfigFileError {
     pos: Pos,
     message: String,
@@ -106,67 +110,28 @@ fn parse_option(reader: &mut Reader, options: &mut CliOptions) -> Result<(), Con
     let option_name = reader.read_while(|c: char| c.is_alphanumeric() || c == '-' || c == '_');
     match option_name.as_str() {
         "verbose" => {
-            skip_whitespace_and_comments(reader);
-            if reader.peek() == Some('=') {
-                return Err(ConfigFileError::new(
-                    save.pos,
-                    "Option --verbose does not take a value",
-                ));
-            }
+            expect_no_value(reader)?;
             options.verbosity = Some(Verbosity::Verbose);
             Ok(())
         }
         "header" => {
-            save = reader.cursor();
-            skip_whitespace_and_comments(reader);
+            parse_value_separator(reader)?;
+            let value = parse_value(reader)?;
 
-            let header_value = if reader.peek() == Some('=') {
-                reader.read(); // consume '='
-                save = reader.cursor();
-                reader.read_while(|c| c != '\n').trim().to_string()
-            } else {
-                if reader.is_eof() {
-                    return Err(ConfigFileError::new(
-                        save.pos,
-                        "Option --header requires a value",
-                    ));
-                }
-                save = reader.cursor();
-                reader.read_while(|c| c != '\n').trim().to_string()
-            };
-            if header_value.is_empty() {
+            if value.is_empty() {
                 return Err(ConfigFileError::new(
                     save.pos,
                     "Option --header requires a value",
                 ));
             }
-            options.headers.push(header_value);
+            options.headers.push(value);
 
             Ok(())
         }
         "max-redirs" => {
+            parse_value_separator(reader)?;
             save = reader.cursor();
-            skip_whitespace_and_comments(reader);
-            let value = if reader.peek() == Some('=') {
-                reader.read(); // consume '='
-                save = reader.cursor();
-                reader.read_while(|c| c != '\n').trim().to_string()
-            } else {
-                if reader.is_eof() {
-                    return Err(ConfigFileError::new(
-                        save.pos,
-                        "Option --max-redirs requires a value",
-                    ));
-                }
-                save = reader.cursor();
-                reader.read_while(|c| c != '\n').trim().to_string()
-            };
-            if value.is_empty() {
-                return Err(ConfigFileError::new(
-                    save.pos,
-                    "Option --max-redirs requires a value",
-                ));
-            }
+            let value = parse_value(reader)?;
             let max_redirs = value.parse::<i32>().map_err(|_| {
                 ConfigFileError::new(save.pos, "Option --max-redirs requires an integer value")
             })?;
@@ -180,58 +145,9 @@ fn parse_option(reader: &mut Reader, options: &mut CliOptions) -> Result<(), Con
             Ok(())
         }
         "user-agent" => {
-            save = reader.cursor();
-            skip_whitespace_and_comments(reader);
-            let value = if reader.peek() == Some('=') {
-                reader.read(); // consume '='
-                save = reader.cursor();
-                if let Some('"') = reader.peek() {
-                    reader.read(); // consume opening quote
-                    let value = reader.read_while(|c| c != '"');
-                    if reader.peek() == Some('"') {
-                        reader.read(); // consume closing quote
-                        value.trim().to_string()
-                    } else {
-                        return Err(ConfigFileError::new(
-                            save.pos,
-                            "Option --user-agent value is missing closing quote",
-                        ));
-                    }
-                } else {
-                    reader.read_while(|c| c != '\n').trim().to_string()
-                }
-            } else {
-                if reader.is_eof() {
-                    return Err(ConfigFileError::new(
-                        save.pos,
-                        "Option --user-agent requires a value",
-                    ));
-                }
-                save = reader.cursor();
-                if let Some('"') = reader.peek() {
-                    reader.read(); // consume opening quote
-                    let value = reader.read_while(|c| c != '"');
-                    if reader.peek() == Some('"') {
-                        reader.read(); // consume closing quote
-                        value.trim().to_string()
-                    } else {
-                        return Err(ConfigFileError::new(
-                            save.pos,
-                            "Option --user-agent value is missing closing quote",
-                        ));
-                    }
-                } else {
-                    reader.read_while(|c| c != '\n').trim().to_string()
-                }
-            };
-            if value.is_empty() {
-                return Err(ConfigFileError::new(
-                    save.pos,
-                    "Option --user-agent requires a value",
-                ));
-            }
+            parse_value_separator(reader)?;
+            let value = parse_value(reader)?;
             options.user_agent = Some(value);
-
             Ok(())
         }
         _ => Err(ConfigFileError::new(
@@ -283,17 +199,17 @@ mod tests {
         assert_eq!(options.headers, vec!["header1:value1"]);
         assert_eq!(reader.cursor().pos, Pos::new(1, 24));
 
-        let mut reader = Reader::new("--header\nheader2:value2\n--verbose\n");
+        let mut reader = Reader::new("--header header2:value2\n--verbose\n");
         let mut options = CliOptions::default();
         assert!(parse_option(&mut reader, &mut options).is_ok());
         assert_eq!(options.headers, vec!["header2:value2"]);
-        assert_eq!(reader.cursor().pos, Pos::new(2, 15));
+        assert_eq!(reader.cursor().pos, Pos::new(1, 24));
 
-        let mut reader = Reader::new("--header\n--test:1\n");
+        let mut reader = Reader::new("--header --test:1\n");
         let mut options = CliOptions::default();
         assert!(parse_option(&mut reader, &mut options).is_ok());
         assert_eq!(options.headers, vec!["--test:1"]);
-        assert_eq!(reader.cursor().pos, Pos::new(2, 9));
+        assert_eq!(reader.cursor().pos, Pos::new(1, 18));
     }
 
     #[test]
@@ -335,7 +251,10 @@ mod tests {
         let mut options = CliOptions::default();
         let err = parse_option(&mut reader, &mut options).unwrap_err();
         assert_eq!(err.pos, Pos::new(1, 9));
-        assert_eq!(err.message, "Option --header requires a value");
+        assert_eq!(
+            err.message,
+            "Expecting a value using space or '=' separator"
+        );
     }
 
     #[test]
@@ -343,8 +262,8 @@ mod tests {
         let mut reader = Reader::new("--verbose=1\n");
         let mut options = CliOptions::default();
         let err = parse_option(&mut reader, &mut options).unwrap_err();
-        assert_eq!(err.pos, Pos::new(1, 1));
-        assert_eq!(err.message, "Option --verbose does not take a value");
+        assert_eq!(err.pos, Pos::new(1, 10));
+        assert_eq!(err.message, "Not expecting a value for this option");
 
         let mut reader = Reader::new("--max-redirs=a\n");
         let mut options = CliOptions::default();
