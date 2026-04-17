@@ -15,6 +15,8 @@
  * limitations under the License.
  *
  */
+use std::cmp::min;
+use std::path::PathBuf;
 use std::time::Duration;
 
 use hurl_core::ast::SourceInfo;
@@ -22,6 +24,9 @@ use hurl_core::reader::Pos;
 use hurl_core::types::Index;
 
 use crate::http::{Call, CookieStore, CurlCmd};
+use crate::pretty;
+use crate::pretty::PrettyMode;
+use crate::pretty::json::Color;
 use crate::util::path::ContextDir;
 use crate::util::term::Stdout;
 
@@ -188,7 +193,7 @@ impl EntryResult {
     /// Writes the last HTTP response of this entry result to this `output`.
     /// The HTTP response can be decompressed if the entry's `compressed` option has been set.
     /// This method checks if the response has write access to this output, given a `context_dir`.
-    pub fn write_response(
+    pub fn write_response_with_context_dir(
         &self,
         output: &Output,
         context_dir: &ContextDir,
@@ -215,4 +220,110 @@ impl EntryResult {
             output.write_with_context_dir(&response.body, stdout, context_dir, source_info)
         }
     }
+
+    pub fn write_response(
+        &self,
+        output: Option<&Output>,
+        stdout: &mut Stdout,
+        include_headers: bool,
+        color: bool,
+        pretty: PrettyMode,
+        append: bool,
+    ) -> Result<(), RunnerError> {
+        let Some(call) = &self.calls.last() else {
+            return Ok(());
+        };
+
+        let response = &call.response;
+        let source_info = self.source_info;
+        let mut out = Vec::new();
+
+        // If include options is set, we output the HTTP response headers with status and version
+        // (to mimic curl outputs)
+        if include_headers {
+            let text = response.get_status_line_headers(color);
+            out.append(&mut text.into_bytes());
+            out.push(b'\n');
+        }
+
+        let body_bytes = if self.compressed {
+            &response
+                .uncompress_body()
+                .map_err(|e| RunnerError::new(source_info, RunnerErrorKind::Http(e), false))?
+        } else {
+            &response.body
+        };
+
+        // Prettify only JSON-like response for the moment.
+        let pretty = match pretty {
+            PrettyMode::Automatic => response.is_json(),
+            PrettyMode::Force => true,
+            PrettyMode::None => false,
+        };
+        if pretty {
+            let color_pretty = if color { Color::Ansi } else { Color::NoColor };
+            match pretty::format(body_bytes, color_pretty, &mut out) {
+                Ok(_) => {}
+                Err(_) => {
+                    // We've an error trying to pretty print response output, we silently fail and
+                    // fallback on non prettifying.
+                    return self.write_response(
+                        output,
+                        stdout,
+                        include_headers,
+                        color,
+                        PrettyMode::None,
+                        append,
+                    );
+                }
+            }
+        } else {
+            out.extend_from_slice(body_bytes);
+        }
+
+        // We replicate curl's checks for binary output: a warning is displayed when user hasn't
+        // used `--output` option and the response is considered as a binary content. If user has used
+        // `--output` whether to save to a file, or to redirect output to standard output (`--output -`)
+        // we don't display any warning.
+        let output = match output {
+            None => {
+                if stdout.is_terminal() && is_binary(&out) {
+                    let message = "Binary output can mess up your terminal. Use \"--output -\" to tell Hurl to output it to your terminal anyway, or consider \"--output\" to save to a file.";
+                    let kind = RunnerErrorKind::FileWriteAccess {
+                        path: PathBuf::from(""),
+                        error: message.to_string(),
+                    };
+                    return Err(RunnerError::new(source_info, kind, false));
+                }
+                &Output::Stdout
+            }
+            Some(o) => o,
+        };
+
+        output.write(&out, stdout, append).map_err(|e| {
+            let kind = RunnerErrorKind::FileWriteAccess {
+                path: PathBuf::from(""),
+                error: e.to_string(),
+            };
+            RunnerError::new(source_info, kind, false)
+        })?;
+        Ok(())
+    }
+}
+
+/// Returns `true` if `bytes` is a binary content, false otherwise.
+///
+/// For the implementation, we use a simple heuristic on the buffer: just check the presence of NULL
+/// in the first 2000 bytes to determine if the content if binary or not.
+///
+/// See <https://github.com/curl/curl/pull/1512>
+/// and <https://github.com/curl/curl/blob/721941aadf4adf4f6aeb3f4c0ab489bb89610c36/src/tool_cb_wrt.c#L209>
+fn is_binary(bytes: &[u8]) -> bool {
+    let len = min(2000, bytes.len());
+    for c in &bytes[..len] {
+        if *c == 0 {
+            return true;
+        }
+    }
+    false
 }

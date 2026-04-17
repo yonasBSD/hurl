@@ -15,15 +15,9 @@
  * limitations under the License.
  *
  */
-use super::OutputError;
-use super::error::OutputErrorKind;
-use crate::pretty;
 use crate::pretty::PrettyMode;
-use crate::pretty::json::Color;
-use crate::runner::{HurlResult, Output};
+use crate::runner::{HurlResult, Output, RunnerError};
 use crate::util::term::Stdout;
-use std::cmp::min;
-use std::io::IsTerminal;
 
 /// Writes the `hurl_result` last response to the file `filename_out`.
 ///
@@ -39,111 +33,12 @@ pub fn write_last_body(
     filename_out: Option<&Output>,
     stdout: &mut Stdout,
     append: bool,
-) -> Result<(), OutputError> {
+) -> Result<(), RunnerError> {
     // Get the last call of the Hurl result.
     let Some(last_entry) = &hurl_result.entries.last() else {
         return Ok(());
     };
-    let Some(call) = &last_entry.calls.last() else {
-        return Ok(());
-    };
-
-    let response = &call.response;
-    let source_info = last_entry.source_info;
-    let mut output = Vec::new();
-
-    // If include options is set, we output the HTTP response headers with status and version
-    // (to mimic curl outputs)
-    if include_headers {
-        let text = response.get_status_line_headers(color);
-        output.append(&mut text.into_bytes());
-        output.push(b'\n');
-    }
-
-    let body_bytes = if last_entry.compressed {
-        &match response.uncompress_body() {
-            Ok(b) => b,
-            Err(e) => {
-                let source_info = last_entry.source_info;
-                let kind = OutputErrorKind::Http(e);
-                return Err(OutputError::new(source_info, kind));
-            }
-        }
-    } else {
-        &response.body
-    };
-
-    // Prettify only JSON-like response for the moment.
-    let pretty = match pretty {
-        PrettyMode::Automatic => response.is_json(),
-        PrettyMode::Force => true,
-        PrettyMode::None => false,
-    };
-    if pretty {
-        let color_pretty = if color { Color::Ansi } else { Color::NoColor };
-        match pretty::format(body_bytes, color_pretty, &mut output) {
-            Ok(_) => {}
-            Err(_) => {
-                // We've an error trying to pretty print response output, we silently fail and
-                // fallback on non prettifying.
-                return write_last_body(
-                    hurl_result,
-                    include_headers,
-                    color,
-                    PrettyMode::None,
-                    filename_out,
-                    stdout,
-                    append,
-                );
-            }
-        }
-    } else {
-        output.extend_from_slice(body_bytes);
-    }
-
-    // We replicate curl's checks for binary output: a warning is displayed when user hasn't
-    // used `--output` option and the response is considered as a binary content. If user has used
-    // `--output` whether to save to a file, or to redirect output to standard output (`--output -`)
-    // we don't display any warning.
-    match filename_out {
-        None => {
-            if std::io::stdout().is_terminal() && is_binary(&output) {
-                let kind = OutputErrorKind::Binary;
-                return Err(OutputError::new(source_info, kind));
-            }
-            Output::Stdout.write(&output, stdout, append).map_err(|e| {
-                let kind = OutputErrorKind::Io(e.to_string());
-                OutputError::new(source_info, kind)
-            })?;
-        }
-        Some(out) => out.write(&output, stdout, append).map_err(|e| {
-            let filename = if let Output::File(filename) = out {
-                filename.display().to_string()
-            } else {
-                "stdout".to_string()
-            };
-            let kind = OutputErrorKind::Io(format!("{filename} can not be written ({e})"));
-            OutputError::new(source_info, kind)
-        })?,
-    }
-    Ok(())
-}
-
-/// Returns `true` if `bytes` is a binary content, false otherwise.
-///
-/// For the implementation, we use a simple heuristic on the buffer: just check the presence of NULL
-/// in the first 2000 bytes to determine if the content if binary or not.
-///
-/// See <https://github.com/curl/curl/pull/1512>
-/// and <https://github.com/curl/curl/blob/721941aadf4adf4f6aeb3f4c0ab489bb89610c36/src/tool_cb_wrt.c#L209>
-fn is_binary(bytes: &[u8]) -> bool {
-    let len = min(2000, bytes.len());
-    for c in &bytes[..len] {
-        if *c == 0 {
-            return true;
-        }
-    }
-    false
+    last_entry.write_response(filename_out, stdout, include_headers, color, pretty, append)
 }
 
 #[cfg(test)]

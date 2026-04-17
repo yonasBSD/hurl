@@ -63,7 +63,11 @@ impl Output {
     /// before writing data.
     pub fn write(&self, bytes: &[u8], stdout: &mut Stdout, append: bool) -> Result<(), io::Error> {
         match self {
-            Output::Stdout => stdout.write_all(bytes)?,
+            Output::Stdout => stdout.write_all(bytes).map_err(|e| {
+                let filename = "stdout".to_string();
+                let message = format!("{filename} can not be written ({e})");
+                io::Error::other(message)
+            }),
             Output::File(filename) => {
                 let mut file = OpenOptions::new()
                     .create(true)
@@ -71,10 +75,13 @@ impl Output {
                     .append(append)
                     .truncate(!append)
                     .open(filename)?;
-                file.write_all(bytes)?;
+                file.write_all(bytes).map_err(|e| {
+                    let filename = filename.display().to_string();
+                    let message = format!("{filename} can not be written ({e})");
+                    io::Error::other(message)
+                })
             }
         }
-        Ok(())
     }
 
     /// Writes these `bytes` to the output.

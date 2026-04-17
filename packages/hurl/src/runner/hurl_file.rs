@@ -433,7 +433,9 @@ fn write_entry_response(
 ) {
     let context_dir = &options.context_dir;
     let source_info = get_output_source_info(entry);
-    if let Err(error) = entry_result.write_response(output, context_dir, stdout, source_info) {
+    if let Err(error) =
+        entry_result.write_response_with_context_dir(output, context_dir, stdout, source_info)
+    {
         let filename = input.map_or(String::new(), |f| f.to_string());
         let message = error.render(
             &filename,
