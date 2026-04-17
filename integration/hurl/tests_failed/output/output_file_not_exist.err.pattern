@@ -1,4 +1,4 @@
-error: IO Error
+error: File write access
   --> tests_ok/hello/hello.hurl:28:1
    |
 28 | GET http://localhost:8000/hello
