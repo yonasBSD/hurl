@@ -348,6 +348,8 @@ This is a cli-only option.
 
 Add basic Authentication header to each request.
 
+Environment variables: HURL_USER
+
 #### -A, --user-agent <NAME> {#user-agent}
 
 Specify the User-Agent string to send to the HTTP server.

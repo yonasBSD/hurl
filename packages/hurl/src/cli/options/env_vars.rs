@@ -311,6 +311,13 @@ fn timeout(context: &RunContext, default_value: Duration) -> Result<Duration, Cl
     }
 }
 
+fn user(context: &RunContext, default_value: Option<String>) -> Option<String> {
+    context
+        .user_env_var()
+        .map(|s| s.to_string())
+        .or(default_value)
+}
+
 fn user_agent(context: &RunContext, default_value: Option<String>) -> Option<String> {
     context
         .user_agent_env_var()
@@ -369,6 +376,7 @@ pub fn parse_env_vars(
     let retry_interval = retry_interval(context, default_options.retry_interval)?;
     let secrets = secrets(context, default_options.secrets)?;
     let timeout = timeout(context, default_options.timeout)?;
+    let user = user(context, default_options.user);
     let user_agent = user_agent(context, default_options.user_agent);
     let variables = variables(context, default_options.variables)?;
     let verbosity = verbosity(context, default_options.verbosity)?;
@@ -403,6 +411,7 @@ pub fn parse_env_vars(
         secrets,
         test,
         timeout,
+        user,
         user_agent,
         variables,
         verbosity,

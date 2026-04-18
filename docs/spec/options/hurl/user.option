@@ -4,5 +4,6 @@ short: u
 value: USER:PASSWORD
 help: Add basic Authentication header to each request
 help_heading: HTTP options
+env_var: HURL_USER
 ---
 Add basic Authentication header to each request.
