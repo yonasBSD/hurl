@@ -26,7 +26,6 @@ use hurl_core::parser;
 use hurl_core::types::{Count, Index};
 
 use crate::http::{Call, Client, CredentialForwarding, FollowLocation};
-use crate::pretty::PrettyMode;
 use crate::util::logger::{ErrorFormat, Logger, LoggerOptions};
 use crate::util::term::{Stderr, Stdout, WriteMode};
 
@@ -452,12 +451,11 @@ fn write_entry_response(
         }
     };
 
-    // Hard-codes these values for the moment, we'll take them into account later using
-    // runner options.
+    // Hard-codes `include` for the moment
     let include_headers = false;
-    let color = false;
-    let pretty = PrettyMode::None;
-    // When we overrides output in a entry, we truncate existing files.
+    let color = options.color_stdout;
+    let pretty = options.pretty;
+    // When we override output in a entry, we truncate existing files.
     let append = false;
     if let Err(error) = entry_result.write_response(
         Some(&output),

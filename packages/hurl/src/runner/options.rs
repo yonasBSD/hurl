@@ -22,6 +22,7 @@ use hurl_core::ast::{
 use hurl_core::types::{BytesPerSec, Count, DurationUnit};
 
 use crate::http::{CredentialForwarding, FollowLocation, Header, IpResolve, RequestedHttpVersion};
+use crate::pretty::PrettyMode;
 use crate::util::logger::{Logger, Verbosity};
 
 use super::error::{RunnerError, RunnerErrorKind};
@@ -237,6 +238,10 @@ pub fn get_entry_options(
             OptionKind::Output(output) => {
                 let filename = eval_template(output, variables)?;
                 let output = Output::new(&filename);
+                // If pretty mode is automatic, we disable it if the user is writing output to a file.
+                if let Output::File(_) = output {
+                    entry_options.pretty = PrettyMode::None;
+                }
                 entry_options.output = Some(output);
             }
             OptionKind::PathAsIs(value) => {

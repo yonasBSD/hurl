@@ -20,6 +20,7 @@ use std::time::Duration;
 use hurl_core::types::{BytesPerSec, Count};
 
 use crate::http::{FollowLocation, HeaderVec, IpResolve, RequestedHttpVersion};
+use crate::pretty::PrettyMode;
 use crate::util::path::ContextDir;
 
 use super::output::Output;
@@ -31,6 +32,7 @@ pub struct RunnerOptionsBuilder {
     cacert_file: Option<String>,
     client_cert_file: Option<String>,
     client_key_file: Option<String>,
+    color_stdout: bool,
     compressed: bool,
     connect_timeout: Duration,
     connects_to: Vec<String>,
@@ -58,6 +60,7 @@ pub struct RunnerOptionsBuilder {
     ntlm: bool,
     output: Option<Output>,
     path_as_is: bool,
+    pretty_mode: PrettyMode,
     pinned_pub_key: Option<String>,
     proxy: Option<String>,
     repeat: Option<Count>,
@@ -82,6 +85,7 @@ impl Default for RunnerOptionsBuilder {
             cacert_file: None,
             client_cert_file: None,
             client_key_file: None,
+            color_stdout: true,
             compressed: false,
             connect_timeout: Duration::from_secs(300),
             connects_to: vec![],
@@ -110,6 +114,7 @@ impl Default for RunnerOptionsBuilder {
             output: None,
             path_as_is: false,
             pinned_pub_key: None,
+            pretty_mode: PrettyMode::Automatic,
             proxy: None,
             repeat: None,
             resolves: vec![],
@@ -166,6 +171,13 @@ impl RunnerOptionsBuilder {
     /// Sets private key file name.
     pub fn client_key_file(&mut self, client_key_file: Option<String>) -> &mut Self {
         self.client_key_file = client_key_file;
+        self
+    }
+
+    /// Whether we use color in stdout, or not. This property is used when response is outputted
+    /// to a file or to standard output through `[Options]` section.
+    pub fn color_stdout(&mut self, color_stdout: bool) -> &mut Self {
+        self.color_stdout = color_stdout;
         self
     }
 
@@ -363,6 +375,12 @@ impl RunnerOptionsBuilder {
         self
     }
 
+    /// Set the pretty mode to prettify response output for supported content type (JSON only for the moment)?
+    pub fn pretty(&mut self, pretty_mode: PrettyMode) -> &mut Self {
+        self.pretty_mode = pretty_mode;
+        self
+    }
+
     /// Sets the specified proxy to be used.
     pub fn proxy(&mut self, proxy: Option<String>) -> &mut Self {
         self.proxy = proxy;
@@ -453,6 +471,7 @@ impl RunnerOptionsBuilder {
             cacert_file: self.cacert_file.clone(),
             client_cert_file: self.client_cert_file.clone(),
             client_key_file: self.client_key_file.clone(),
+            color_stdout: self.color_stdout,
             compressed: self.compressed,
             connect_timeout: self.connect_timeout,
             connects_to: self.connects_to.clone(),
@@ -481,6 +500,7 @@ impl RunnerOptionsBuilder {
             output: self.output.clone(),
             path_as_is: self.path_as_is,
             pinned_pub_key: self.pinned_pub_key.clone(),
+            pretty: self.pretty_mode,
             proxy: self.proxy.clone(),
             repeat: self.repeat,
             resolves: self.resolves.clone(),
@@ -514,6 +534,9 @@ pub struct RunnerOptions {
     pub(crate) client_cert_file: Option<String>,
     /// Sets private key file name.
     pub(crate) client_key_file: Option<String>,
+    /// Whether we use color in stdout, or not. This property is used when response is outputted
+    /// to a file or to standard output through `[Options]` section.
+    pub(crate) color_stdout: bool,
     /// Requests a compressed response using one of the algorithms br, gzip, deflate and
     /// automatically decompress the content.
     pub(crate) compressed: bool,
@@ -570,6 +593,8 @@ pub struct RunnerOptions {
     pub(crate) path_as_is: bool,
     /// Sets the pinned public key.
     pub(crate) pinned_pub_key: Option<String>,
+    /// Prettify response output for supported content type (JSON only for the moment).
+    pub(crate) pretty: PrettyMode,
     /// Sets the specified proxy to be used.
     pub(crate) proxy: Option<String>,
     /// Set the number of repetition for a given entry.

@@ -334,6 +334,7 @@ impl CliOptions {
                 InputKind::Stdin(_) => current_dir,
             },
         };
+        let color_stdout = self.color_stdout;
         let context_dir = ContextDir::new(current_dir, file_root);
         let continue_on_error = self.continue_on_error;
         let cookie_input_file = self.cookie_input_file.clone();
@@ -386,6 +387,7 @@ impl CliOptions {
         let output = self.output.clone();
         let path_as_is = self.path_as_is;
         let pinned_pub_key = self.pinned_pub_key.clone();
+        let pretty = self.pretty;
         let proxy = self.proxy.clone();
         let resolves = self.resolves.clone();
         let retry = self.retry;
@@ -407,6 +409,7 @@ impl CliOptions {
             .client_key_file(client_key_file)
             .delay(delay)
             .digest(digest)
+            .color_stdout(color_stdout)
             .compressed(compressed)
             .connect_timeout(connect_timeout)
             .connects_to(&connects_to)
@@ -433,6 +436,7 @@ impl CliOptions {
             .output(output)
             .path_as_is(path_as_is)
             .pinned_pub_key(pinned_pub_key)
+            .pretty(pretty)
             .proxy(proxy)
             .resolves(&resolves)
             .retry(retry)
