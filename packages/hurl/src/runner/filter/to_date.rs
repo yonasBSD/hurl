@@ -64,7 +64,10 @@ pub fn eval_to_date(
             Err(RunnerError::new(source_info, kind, assert))
         }
         v => {
-            let kind = RunnerErrorKind::FilterInvalidInput(v.repr());
+            let kind = RunnerErrorKind::FilterInvalidInputType {
+                actual: v.kind().to_string(),
+                expected: "string".to_string(),
+            };
             Err(RunnerError::new(source_info, kind, assert))
         }
     }
@@ -255,7 +258,10 @@ mod tests {
         );
         assert_eq!(
             ret.unwrap_err().kind,
-            RunnerErrorKind::FilterInvalidInput("bytes <c4e3ba>".to_string())
+            RunnerErrorKind::FilterInvalidInputType {
+                actual: "bytes".to_string(),
+                expected: "string".to_string()
+            }
         );
     }
 }

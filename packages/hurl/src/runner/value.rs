@@ -181,7 +181,7 @@ impl fmt::Display for ValueKind {
             ValueKind::Bytes => write!(f, "bytes"),
             ValueKind::Date => write!(f, "date"),
             ValueKind::Float => write!(f, "float"),
-            ValueKind::HttpResponse => write!(f, "http_response"),
+            ValueKind::HttpResponse => write!(f, "http response"),
             ValueKind::Integer => write!(f, "integer"),
             ValueKind::List => write!(f, "list"),
             ValueKind::Nodeset => write!(f, "nodeset"),

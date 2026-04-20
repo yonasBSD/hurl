@@ -94,7 +94,12 @@ pub enum RunnerErrorKind {
     },
     FilterInvalidEncoding(String),
     /// Input of the filter is not valid, with a given reason.
-    FilterInvalidInput(String),
+    FilterInvalidInputValue(String),
+    /// Input of the filter is not the expected type.
+    FilterInvalidInputType {
+        actual: String,
+        expected: String,
+    },
     FilterInvalidFormatSpecifier(String),
     FilterMissingInput,
     Http(HttpError),
@@ -159,7 +164,8 @@ impl DisplaySourceError for RunnerError {
             RunnerErrorKind::FilterDateParsingError { .. } => "Filter error".to_string(),
             RunnerErrorKind::FilterDecode { .. } => "Filter error".to_string(),
             RunnerErrorKind::FilterInvalidEncoding { .. } => "Filter error".to_string(),
-            RunnerErrorKind::FilterInvalidInput { .. } => "Filter error".to_string(),
+            RunnerErrorKind::FilterInvalidInputValue { .. } => "Filter error".to_string(),
+            RunnerErrorKind::FilterInvalidInputType { .. } => "Filter error".to_string(),
             RunnerErrorKind::FilterInvalidFormatSpecifier { .. } => "Filter error".to_string(),
             RunnerErrorKind::FilterMissingInput => "Filter error".to_string(),
             RunnerErrorKind::Http(http_error) => http_error.description(),
@@ -268,8 +274,15 @@ impl DisplaySourceError for RunnerError {
                 let message = error::add_carets(message, self.source_info, content);
                 color_red_multiline_string(&message)
             }
-            RunnerErrorKind::FilterInvalidInput(reason) => {
+            RunnerErrorKind::FilterInvalidInputValue(reason) => {
                 let message = &format!("invalid filter input: {reason}");
+                let message = error::add_carets(message, self.source_info, content);
+                color_red_multiline_string(&message)
+            }
+            RunnerErrorKind::FilterInvalidInputType { actual, expected } => {
+                let message = &format!(
+                    "invalid filter input type\n   actual:   {actual}\n   expected: {expected}"
+                );
                 let message = error::add_carets(message, self.source_info, content);
                 color_red_multiline_string(&message)
             }

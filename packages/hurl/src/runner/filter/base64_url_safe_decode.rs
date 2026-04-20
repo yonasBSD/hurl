@@ -33,20 +33,24 @@ pub fn eval_base64_url_safe_decode(
             Ok(decoded) => Ok(Some(Value::Bytes(decoded))),
             Err(err) => match err {
                 InvalidPadding => {
-                    let kind = RunnerErrorKind::FilterInvalidInput(
+                    let kind = RunnerErrorKind::FilterInvalidInputValue(
                         "base64 string contains padding".to_string(),
                     );
                     Err(RunnerError::new(source_info, kind, assert))
                 }
                 _ => {
-                    let kind =
-                        RunnerErrorKind::FilterInvalidInput("string is not base64".to_string());
+                    let kind = RunnerErrorKind::FilterInvalidInputValue(
+                        "string is not base64".to_string(),
+                    );
                     Err(RunnerError::new(source_info, kind, assert))
                 }
             },
         },
         v => {
-            let kind = RunnerErrorKind::FilterInvalidInput(v.kind().to_string());
+            let kind = RunnerErrorKind::FilterInvalidInputType {
+                actual: v.kind().to_string(),
+                expected: "string".to_string(),
+            };
             Err(RunnerError::new(source_info, kind, assert))
         }
     }
@@ -94,7 +98,7 @@ mod tests {
         );
         assert_eq!(
             ret.unwrap_err().kind,
-            RunnerErrorKind::FilterInvalidInput("string is not base64".to_string())
+            RunnerErrorKind::FilterInvalidInputValue("string is not base64".to_string())
         );
     }
 
@@ -114,7 +118,7 @@ mod tests {
         );
         assert_eq!(
             ret.unwrap_err().kind,
-            RunnerErrorKind::FilterInvalidInput("base64 string contains padding".to_string())
+            RunnerErrorKind::FilterInvalidInputValue("base64 string contains padding".to_string())
         );
     }
 
@@ -134,7 +138,10 @@ mod tests {
         );
         assert_eq!(
             ret.unwrap_err().kind,
-            RunnerErrorKind::FilterInvalidInput("bytes".to_string())
+            RunnerErrorKind::FilterInvalidInputType {
+                actual: "bytes".to_string(),
+                expected: "string".to_string()
+            }
         );
     }
 }

@@ -25,10 +25,14 @@ pub fn eval_location(
     source_info: SourceInfo,
     assert: bool,
 ) -> Result<Option<Value>, RunnerError> {
-    if let Value::HttpResponse(resp) = value {
-        Ok(resp.location().map(|loc| Value::String(loc.raw())))
-    } else {
-        let kind = RunnerErrorKind::FilterInvalidInput(value.kind().to_string());
-        Err(RunnerError::new(source_info, kind, assert))
+    match value {
+        Value::HttpResponse(resp) => Ok(resp.location().map(|loc| Value::String(loc.raw()))),
+        v => {
+            let kind = RunnerErrorKind::FilterInvalidInputType {
+                actual: v.kind().to_string(),
+                expected: "http response".to_string(),
+            };
+            Err(RunnerError::new(source_info, kind, assert))
+        }
     }
 }

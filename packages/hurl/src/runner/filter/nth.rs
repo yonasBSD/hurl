@@ -33,12 +33,15 @@ pub fn eval_nth(
         Value::List(values) => match try_nth(values, n) {
             Ok(value) => Ok(Some(value.clone())),
             Err(err) => {
-                let kind = RunnerErrorKind::FilterInvalidInput(err);
+                let kind = RunnerErrorKind::FilterInvalidInputValue(err);
                 Err(RunnerError::new(source_info, kind, assert))
             }
         },
         v => {
-            let kind = RunnerErrorKind::FilterInvalidInput(v.repr());
+            let kind = RunnerErrorKind::FilterInvalidInputType {
+                actual: v.kind().to_string(),
+                expected: "list".to_string(),
+            };
             Err(RunnerError::new(source_info, kind, assert))
         }
     }
@@ -130,7 +133,7 @@ mod tests {
             .unwrap(),
             RunnerError::new(
                 SourceInfo::new(Pos::new(1, 1), Pos::new(1, 1)),
-                RunnerErrorKind::FilterInvalidInput("out of bound - size is 2".to_string()),
+                RunnerErrorKind::FilterInvalidInputValue("out of bound - size is 2".to_string()),
                 false
             )
         );
@@ -177,7 +180,7 @@ mod tests {
             .unwrap(),
             RunnerError::new(
                 SourceInfo::new(Pos::new(1, 1), Pos::new(1, 1)),
-                RunnerErrorKind::FilterInvalidInput("out of bound - size is 1".to_string()),
+                RunnerErrorKind::FilterInvalidInputValue("out of bound - size is 1".to_string()),
                 false
             )
         );

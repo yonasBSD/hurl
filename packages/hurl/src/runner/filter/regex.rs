@@ -39,7 +39,10 @@ pub fn eval_regex(
             None => Ok(None),
         },
         v => {
-            let kind = RunnerErrorKind::FilterInvalidInput(v.kind().to_string());
+            let kind = RunnerErrorKind::FilterInvalidInputType {
+                actual: v.kind().to_string(),
+                expected: "string".to_string(),
+            };
             Err(RunnerError::new(source_info, kind, assert))
         }
     }
@@ -99,7 +102,10 @@ mod tests {
         );
         assert_eq!(
             error.kind,
-            RunnerErrorKind::FilterInvalidInput("boolean".to_string())
+            RunnerErrorKind::FilterInvalidInputType {
+                actual: "boolean".to_string(),
+                expected: "string".to_string()
+            }
         );
     }
 
