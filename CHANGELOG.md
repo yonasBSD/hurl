@@ -7,6 +7,7 @@ Thanks to
 [@eyupcanakman](https://github.com/eyupcanakman),
 [@AdmiralRazorbeard](https://github.com/AdmiralRazorbeard),
 [@giorgiovilardo](https://github.com/giorgiovilardo),
+[@kikonen](https://github.com/kikonen),
 [@eirayuki](https://github.com/eirayuki),
 [@aageneralov](https://github.com/aageneralov),
 [@mateusz834](https://github.com/mateusz834),
@@ -35,6 +36,7 @@ Enhancements:
 * Add support for asserting/capturing TLS certificate value [#4698](https://github.com/Orange-OpenSource/hurl/issues/4698)
 * Use color/pretty when using output per request [#4970](https://github.com/Orange-OpenSource/hurl/issues/4970)
 * Support color env variables configuration [#4777](https://github.com/Orange-OpenSource/hurl/issues/4777)
+* Enhance error message for invalid filter input on filters [#4381](https://github.com/Orange-OpenSource/hurl/issues/4381)
 * Add `rawbytes` query [#4250](https://github.com/Orange-OpenSource/hurl/issues/4250)
 * Using new JSONPath module implementing RFC 9535 [#4270](https://github.com/Orange-OpenSource/hurl/issues/4270)
 * Add --verbosity option (globally and per request) [#4613](https://github.com/Orange-OpenSource/hurl/issues/4613)
