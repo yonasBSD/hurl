@@ -70,7 +70,6 @@ jsonpath "$.books" count == 12
 | [daysAfterNow](#daysafternow)               | Returns the number of days between now and a date in the future.                                                                       | date             | number |
 | [daysBeforeNow](#daysbeforenow)             | Returns the number of days between now and a date in the past.                                                                         | date             | number |
 | [charsetDecode](#charsetdecode)             | Decodes bytes to string using a charset encoding.                                                                                      | bytes            | string |
-| [charsetEncode](#charsetencode)             | Encodes string to bytes using a charset encoding.                                                                                      | bytes            | string |
 | [first](#first)                             | Returns the first element from a collection.                                                                                           | collection       | any    |
 | [htmlEscape](#htmlescape)                   | Converts the characters `&`, `<` and `>` to HTML-safe sequence.                                                                        | string           | string |
 | [htmlUnescape](#htmlunescape)               | Converts all named and numeric character references (e.g. `&gt;`, `&#62;`, `&#x3e;`) to the corresponding Unicode characters.          | string           | string |
@@ -153,21 +152,7 @@ header "Content-Type" == "text/html"
 bytes charsetDecode "gb2312" xpath "string(//body)" == "你好世界"
 ```
 
-When the encoding is UTF-8 (i.e. `charsetDecode "utf-8"`), [an `utf8Decode` filter] can be used instead. 
-
-
-### charsetEncode
-
-Encodes string to bytes using a charset encoding. Encoding labels are defined in [Encoding Standard].
-
-```hurl
-GET https://example.org/hello_china
-HTTP 200
-[Asserts]
-body charsetEncode "gb2312" toHex = "48656C6C6F776F726C64"
-```
-
-When the encoding is UTF-8 (i.e. `charsetEncode "utf-8"`), [an `utf8Encode` filter] can be used instead.
+When the encoding is UTF-8 (i.e. `charsetDecode "utf-8"`), [an `utf8Decode` filter] can be used instead.
 
 ### count
 
