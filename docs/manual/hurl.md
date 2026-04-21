@@ -505,7 +505,7 @@ This is a cli-only option.
 
 #### --jobs <NUM> {#jobs}
 
-Maximum number of parallel jobs in parallel mode. Default value corresponds (in most cases) to the current amount of CPUs.
+Maximum number of parallel jobs in parallel mode. Default value corresponds (in most cases) to the current amount of CPUs. Set to 1 to disable parallel execution of files.
 
 See also [`--parallel`](#parallel).
 
@@ -572,7 +572,7 @@ This is a cli-only option.
 
 Activate test mode: with this, the HTTP response is not outputted anymore, progress is reported for each Hurl file tested, and a text summary is displayed when all files have been run.
 
-In test mode, files are executed in parallel. To run test in a sequential way use `--job 1`.
+In test mode, files are executed in parallel. To run test in a sequential way use `--jobs 1`.
 
 See also [`--jobs`](#jobs).
 

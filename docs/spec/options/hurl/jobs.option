@@ -7,6 +7,6 @@ help_heading: Run options
 cli_only: true
 env_var: HURL_JOBS
 ---
-Maximum number of parallel jobs in parallel mode. Default value corresponds (in most cases) to the current amount of CPUs.
+Maximum number of parallel jobs in parallel mode. Default value corresponds (in most cases) to the current amount of CPUs. Set to 1 to disable parallel execution of files.
 
 See also [`--parallel`](#parallel).

@@ -1,4 +1,4 @@
-.TH hurl 1 "18 Apr 2026" "hurl 8.0.0-SNAPSHOT" " Hurl Manual"
+.TH hurl 1 "21 Apr 2026" "hurl 8.0.0-SNAPSHOT" " Hurl Manual"
 .SH NAME
 
 hurl - run and test HTTP requests.
@@ -487,7 +487,7 @@ This is a cli-only option.
 
 .IP "--jobs <NUM> "
 
-Maximum number of parallel jobs in parallel mode. Default value corresponds (in most cases) to the current amount of CPUs.
+Maximum number of parallel jobs in parallel mode. Default value corresponds (in most cases) to the current amount of CPUs. Set to 1 to disable parallel execution of files.
 
 See also \fI--parallel\fP.
 
@@ -554,7 +554,7 @@ This is a cli-only option.
 
 Activate test mode: with this, the HTTP response is not outputted anymore, progress is reported for each Hurl file tested, and a text summary is displayed when all files have been run.
 
-In test mode, files are executed in parallel. To run test in a sequential way use `--job 1`.
+In test mode, files are executed in parallel. To run test in a sequential way use `--jobs 1`.
 
 See also \fI--jobs\fP.
 
