@@ -35,7 +35,7 @@ def update_man(option_files: List[str], output_file):
     sys.stderr.write("Update " + output_file + "\n")
     current_man = open(output_file).read()
     result = re.search(
-        r"## OPTIONS[^#]*(###.*)#### -h, --help", current_man, re.MULTILINE | re.DOTALL
+        r"## ALL OPTIONS.*?(###.*)#### -h, --help", current_man, re.DOTALL
     )
     if result is None:
         raise Exception("Options can not been found in current man " + output_file)

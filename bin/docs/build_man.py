@@ -66,6 +66,10 @@ def convert_md(s) -> str:
     p = re.compile(r"\[`?(.*?)`?\]\(.*?\)")
     s = p.sub("\\\\fI\\1\\\\fP", s)
 
+    # Convert markdown list items
+    p = re.compile(r"^- (.*)", re.MULTILINE)
+    s = p.sub(".IP \\(bu 2\n\\1", s)
+
     # Remove local anchor
     p = re.compile(r"{#.*}")
     s = p.sub("", s)

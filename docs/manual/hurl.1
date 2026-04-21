@@ -104,12 +104,12 @@ With the addition of asserts, Hurl can be used as a testing tool to run scenario
 
 More information on asserts can be found here \fIhttps://hurl.dev/docs/asserting-response.html\fP
 
-.SH OPTIONS
+.SH CONFIGURATION
 
 Options that exist in curl have exactly the same semantics.
 
 Options specified on the command line are defined for every Hurl file's entry,
-except if they are tagged as cli-only (can not be defined in the Hurl request [Options] entry)
+except if they are tagged as cli-only (can not be defined in the Hurl request `[Options]` entry)
 
 For instance:
 
@@ -126,6 +126,18 @@ will follow redirection for each entry in `foo.hurl`. You can also define an opt
     HTTP 200
 
 will follow a redirection only for the second entry.
+
+Most of the options can also be defined with environment variables (like `HURL_INSECURE` for \fI--insecure\fP). So, in order
+to configure Hurl, there are three sources from the lowest priority (most easily overridden) to highest (overrides all others):
+
+.IP \(bu 2
+Environment variables (ex: `HURL_INSECURE`)
+.IP \(bu 2
+Command-line options (ex: `--insecure`)
+.IP \(bu 2
+Options section options (ex: `insecure: true` in file)
+
+.SH ALL OPTIONS
 
 .SS "HTTP options"
 

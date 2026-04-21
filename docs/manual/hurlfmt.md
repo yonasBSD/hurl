@@ -58,7 +58,7 @@ Fruit: Raspberry
 ```
 
 
-## OPTIONS
+## ALL OPTIONS
 
 
 #### --check {#check}

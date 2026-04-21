@@ -237,7 +237,8 @@ HTTP 200
     * [Hurl File Format](#hurl-file-format)
         * [Capturing values](#capturing-values)
         * [Asserts](#asserts)
-    * [Options](#options)
+    * [Configuration](#configuration)
+    * [All Options](#all-options)
         * [HTTP options](#http-options)
         * [Output options](#output-options)
         * [Run options](#run-options)
@@ -1418,12 +1419,12 @@ With the addition of asserts, Hurl can be used as a testing tool to run scenario
 
 More information on asserts can be found here [https://hurl.dev/docs/asserting-response.html](https://hurl.dev/docs/asserting-response.html)
 
-## Options
+## Configuration
 
 Options that exist in curl have exactly the same semantics.
 
 Options specified on the command line are defined for every Hurl file's entry,
-except if they are tagged as cli-only (can not be defined in the Hurl request [Options] entry)
+except if they are tagged as cli-only (can not be defined in the Hurl request `[Options]` entry)
 
 For instance:
 
@@ -1444,6 +1445,15 @@ HTTP 200
 ```
 
 will follow a redirection only for the second entry.
+
+Most of the options can also be defined with environment variables (like `HURL_INSECURE` for [`--insecure`](#insecure)). So, in order
+to configure Hurl, there are three sources from the lowest priority (most easily overridden) to highest (overrides all others):
+
+- Environment variables (ex: `HURL_INSECURE`)
+- Command-line options (ex: `--insecure`)
+- Options section options (ex: `insecure: true` in file)
+
+## All Options
 
 ### HTTP options
 
