@@ -463,12 +463,7 @@ Environment variables: HURL_VERBOSE
 
 #### --verbosity <LEVEL> {#verbosity}
 
-Set the verbosity level for debug logs on standard error stream.
-Useful for debugging.
-
-A line starting with '>' means data sent by Hurl.
-A line staring with '<' means data received by Hurl.
-A line starting with '*' means additional info provided by Hurl.
+Set the verbosity level for debug logs on standard error stream (brief, verbose or debug)
 
 If you only want HTTP headers in the output, [`-i, --include`](#include) might be the option you're looking for.
 [`-v, --verbose`](#verbose) is an alias for `--verbosity verbose`
@@ -719,7 +714,7 @@ Failed to parse command-line options.
 
 ### 2
 
-Input File Parsing Error.
+Input file parsing error.
 
 ### 3
 
@@ -727,7 +722,7 @@ Runtime error (such as failure to connect to host).
 
 ### 4
 
-Assert Error.
+Assert error.
 
 ## WWW
 

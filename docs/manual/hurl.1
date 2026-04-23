@@ -1,4 +1,4 @@
-.TH hurl 1 "21 Apr 2026" "hurl 8.0.0-SNAPSHOT" " Hurl Manual"
+.TH hurl 1 "23 Apr 2026" "hurl 8.0.0-SNAPSHOT" " Hurl Manual"
 .SH NAME
 
 hurl - run and test HTTP requests.
@@ -448,12 +448,7 @@ Environment variables: HURL_VERBOSE
 
 .IP "--verbosity <LEVEL> "
 
-Set the verbosity level for debug logs on standard error stream.
-Useful for debugging.
-
-A line starting with '>' means data sent by Hurl.
-A line staring with '<' means data received by Hurl.
-A line starting with '*' means additional info provided by Hurl.
+Set the verbosity level for debug logs on standard error stream (brief, verbose or debug)
 
 If you only want HTTP headers in the output, \fI-i, --include\fP might be the option you're looking for.
 \fI-v, --verbose\fP is an alias for `--verbosity verbose`
@@ -704,7 +699,7 @@ Failed to parse command-line options.
 
 .SS "2"
 
-Input File Parsing Error.
+Input file parsing error.
 
 .SS "3"
 
@@ -712,7 +707,7 @@ Runtime error (such as failure to connect to host).
 
 .SS "4"
 
-Assert Error.
+Assert error.
 
 .SH WWW
 
