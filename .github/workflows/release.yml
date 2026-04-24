@@ -396,6 +396,7 @@ jobs:
                 --notes-file release_changelog.md \
                 --title "${RELEASE_VERSION}" \
                 --draft \
+                --prerelease \
                 "artifacts/release-deb-x64-artifacts/hurl_${RELEASE_VERSION}_amd64.deb" \
                 "artifacts/release-deb-x64-artifacts/hurl_${RELEASE_VERSION}_amd64.deb.sha256" \
                 "artifacts/release-deb-aarch64-artifacts/hurl_${RELEASE_VERSION}_arm64.deb" \
