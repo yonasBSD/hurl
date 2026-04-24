@@ -187,15 +187,11 @@ impl Reader {
         let mut s = String::new();
         loop {
             match self.peek() {
-                None => return s,
-                Some(c) => {
-                    if predicate(c) {
-                        _ = self.read();
-                        s.push(c);
-                    } else {
-                        return s;
-                    }
+                Some(c) if predicate(c) => {
+                    _ = self.read();
+                    s.push(c);
                 }
+                _ => return s,
             }
         }
     }

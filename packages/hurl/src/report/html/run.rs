@@ -89,7 +89,7 @@ fn get_entry_html(entry: &EntryResult, entry_index: usize, secrets: &[&str]) -> 
             .iter()
             .map(|c| (&c.name, c.value.to_string().redact(secrets)))
             .collect::<Vec<(&String, String)>>();
-        values.sort_by(|a, b| a.0.to_lowercase().cmp(&b.0.to_lowercase()));
+        values.sort_by_key(|a| a.0.to_lowercase());
         let table = new_table("Captures", &values);
         text.push_str(&table);
     }
@@ -173,7 +173,7 @@ fn get_call_html(
         .iter()
         .map(|h| (h.name.as_str(), h.value.redact(secrets)))
         .collect::<Vec<(&str, String)>>();
-    values.sort_by(|a, b| a.0.to_lowercase().cmp(&b.0.to_lowercase()));
+    values.sort_by_key(|a| a.0.to_lowercase());
     let table = new_table("Request Headers", &values);
     text.push_str(&table);
 
@@ -183,7 +183,7 @@ fn get_call_html(
         .iter()
         .map(|h| (h.name.as_str(), h.value.redact(secrets)))
         .collect::<Vec<(&str, String)>>();
-    values.sort_by(|a, b| a.0.to_lowercase().cmp(&b.0.to_lowercase()));
+    values.sort_by_key(|a| a.0.to_lowercase());
     let table = new_table("Response Headers", &values);
     text.push_str(&table);
 
