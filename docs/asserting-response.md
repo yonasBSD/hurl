@@ -20,7 +20,7 @@ jsonpath "$.cats[0].name" == "Felix"
 jsonpath "$.cats[0].lives" == 9
 ```
 
-Body responses can be encoded by server (see [`Content-Encoding` HTTP header]) but asserts in Hurl files are not 
+Body responses can be encoded by server (see [`Content-Encoding` HTTP header][content-encoding]) but asserts in Hurl files are not 
 affected by this content compression. All body asserts (`body`, `bytes`, `sha256` etc...) except `rawbytes` work _after_ content decoding.
 
 Finally, body text asserts (`body`, `jsonpath`, `xpath` etc...) are also decoded to strings based on [`Content-Type` header] 
@@ -85,6 +85,7 @@ The asserts order in a Hurl file is:
     </div>
 </div>
 </div>
+
 
 ## Implicit asserts
 
@@ -332,7 +333,7 @@ to specify the root directory of all file nodes.
 Optional list of assertions on the HTTP response within an `[Asserts]` section. Assertions can describe checks
 on status code, on the received body (or part of it) and on response headers.
 
-Structure of an assert:
+__Structure of an explicit assert:__
 
 <div class="schema-container schema-container u-font-size-1 u-font-size-2-sm u-font-size-3-md">
  <div class="schema">
@@ -363,6 +364,7 @@ can extract data from
 - body:
   - [`body`](#body-assert)
   - [`bytes`](#bytes-assert)
+  - [`rawbytes`](#rawbytes-assert)
   - [`xpath`](#xpath-assert)
   - [`jsonpath`](#jsonpath-assert)
   - [`regex`](#regex-assert)
@@ -979,7 +981,8 @@ duration < 1000   # Check that response time is less than one second
 Check the SSL certificate properties. Certificate assert consists of the keyword `certificate`, followed by the 
 certificate attribute value.
 
-The following attributes are supported: `Subject`, `Issuer`, `Start-Date`, `Expire-Date`, `Serial-Number`, and `Subject-Alt-Name`.
+The following attributes are supported: `Subject`, `Issuer`, `Start-Date`, `Expire-Date`, `Serial-Number`, 
+`Subject-Alt-Name` and `Value`.
 
 ```hurl
 GET https://example.org
@@ -991,6 +994,7 @@ certificate "Expire-Date" daysAfterNow > 15
 certificate "Serial-Number" matches "[0-9af]+"
 certificate "Subject-Alt-Name" contains "DNS:example.org"
 certificate "Subject-Alt-Name" split "," count == 2
+certificate "Value" startsWith "-----BEGIN CERTIFICATE-----"
 ```
 
 [predicates]: #predicates
@@ -1017,7 +1021,7 @@ certificate "Subject-Alt-Name" split "," count == 2
 [`decode` filter]: /docs/filters.md#decode
 [headers implicit asserts]: #headers
 [RFC 3339]: https://www.rfc-editor.org/rfc/rfc3339
-[`Content-Encoding` HTTP header]: https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Content-Encoding
+[content-encoding]: https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Content-Encoding
 [`Content-Type` header]: https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Content-Type
 [`body` assert]: #body-assert
 [`location` filter]: /docs/filters.md#location

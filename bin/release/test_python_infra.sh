@@ -20,6 +20,7 @@ docker run --rm --detach --quiet \
   --publish 10000:10000 \
   --mount type=bind,source=./tests/docs-redirects/nginx.conf,target=/etc/nginx/conf.d/docs.conf,readonly \
   --mount type=bind,source=./salt/docs/config/nginx.docs-redirects.conf,target=/etc/nginx/docs-redirects.conf,readonly \
+  --mount type=bind,source=./tests/docs-redirects/docroot,target=/srv/docroot,readonly \
   nginx:1.26.1-alpine
 
 echo -e "GET http://localhost:10000\n302" | hurl --retry 60 --retry-interval 1s > /dev/null
