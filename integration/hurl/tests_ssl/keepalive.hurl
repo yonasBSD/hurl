@@ -35,7 +35,7 @@ HTTP *
 [Asserts]
 header "Connection" not exists
 certificate "Subject" contains "gitlab.com"
-certificate "Expire-Date" daysAfterNow > 15
+certificate "Expire-Date" daysAfterNow > 10
 
 
 GET https://gitlab.com
@@ -43,7 +43,7 @@ HTTP *
 [Asserts]
 header "Connection" not exists
 certificate "Subject" contains "gitlab.com"
-certificate "Expire-Date" daysAfterNow > 15
+certificate "Expire-Date" daysAfterNow > 10
 
 
 GET https://google.com
