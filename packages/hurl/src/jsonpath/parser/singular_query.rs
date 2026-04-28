@@ -24,8 +24,8 @@ use crate::jsonpath::parser::ParseResult;
 use crate::jsonpath::parser::literal::number::try_integer;
 use crate::jsonpath::parser::primitives::match_str;
 use crate::jsonpath::parser::primitives::{expect_str, skip_whitespace};
+use crate::jsonpath::parser::segments::member_name_shorthand;
 use crate::jsonpath::parser::selectors::try_name_selector;
-use crate::jsonpath::parser::{ParseError, ParseErrorKind};
 use hurl_core::reader::Reader;
 
 /// Try to parse a singular query.
@@ -80,27 +80,6 @@ fn try_singular_query_segment(reader: &mut Reader) -> ParseResult<Option<Singula
         }
     } else {
         Ok(None)
-    }
-}
-
-fn member_name_shorthand(reader: &mut Reader) -> ParseResult<String> {
-    let mut name = alpha(reader)?.to_string();
-    name.push_str(&reader.read_while(|c| c.is_alphanumeric()));
-    Ok(name)
-}
-
-fn alpha(reader: &mut Reader) -> ParseResult<char> {
-    let pos = reader.cursor().pos;
-    if let Some(c) = reader.read() {
-        if c.is_alphabetic() {
-            Ok(c)
-        } else {
-            let kind = ParseErrorKind::Expecting("a character".to_string());
-            Err(ParseError::new(pos, kind))
-        }
-    } else {
-        let kind = ParseErrorKind::Expecting("a character".to_string());
-        Err(ParseError::new(pos, kind))
     }
 }
 

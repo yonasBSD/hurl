@@ -113,7 +113,7 @@ fn try_bracketed_selection(reader: &mut Reader) -> ParseResult<Option<Vec<Select
     }
 }
 
-fn member_name_shorthand(reader: &mut Reader) -> ParseResult<String> {
+pub fn member_name_shorthand(reader: &mut Reader) -> ParseResult<String> {
     let mut value = if let Some(c) = name_first(reader) {
         c.to_string()
     } else {
