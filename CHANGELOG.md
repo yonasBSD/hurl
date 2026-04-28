@@ -1,3 +1,14 @@
+[8.0.1 (2026-04-28)](https://github.com/Orange-OpenSource/hurl/blob/master/CHANGELOG.md#8.0.1)
+========================================================================================================================
+
+Thanks to
+[@verigak](https://github.com/verigak),
+
+Bugs Fixed:
+
+* Support _ in jsonpath member name shorthand [#4995](https://github.com/Orange-OpenSource/hurl/issues/4995)
+
+
 [8.0.0 (2026-04-24)](https://github.com/Orange-OpenSource/hurl/blob/master/CHANGELOG.md#8.0.0)
 ========================================================================================================================
 
