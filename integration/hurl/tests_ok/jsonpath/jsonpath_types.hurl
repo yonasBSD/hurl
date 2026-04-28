@@ -1,6 +1,23 @@
 GET http://localhost:8000/jsonpath/types
 HTTP 200
 [Asserts]
+jsonpath "$[?@.name == 'null'].value" == null
+jsonpath "$[?@.name == 'true'].value" == true
+jsonpath "$[?@.name == 'false'].value" not exists
+jsonpath "$[?@.name == 'fourty_two'].value" == 42
+jsonpath "$[?@.name == 'zero'].value" == 0
+jsonpath "$[?@.name == 'one_trillion'].value" == 1000000000000
+jsonpath "$[?@.name == 'one_hundredth'].value" == 0.01
+jsonpath "$[?@.name == 'hello'].value" == "hello"
+jsonpath "$[?@.name == 'single_quote'].value" == "'"
+jsonpath "$[?@.name == 'double_quote'].value" == "\""
+jsonpath "$[?@.name == 'tab'].value" == "\t"
+jsonpath "$[?@.name == 'backslash'].value" == "\\"
+jsonpath "$[?@.name == 'plane'].value" == "✈"
+jsonpath "$[?@.name == 'fire'].value" == "🔥"
+jsonpath "$[?@.name == 'array'].value" count == 2
+jsonpath "$[?@.name == 'object'].value.a" == 1
+
 jsonpath "$[?@.value == null].name" == "null"
 jsonpath "$[?@.value == true].name" == "true"
 jsonpath "$[?@.value == false].name" not exists
