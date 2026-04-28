@@ -787,6 +787,7 @@ certificate "Expire-Date" daysAfterNow > 15
 certificate "Serial-Number" matches /[\da-f]+/
 certificate "Subject-Alt-Name" contains "DNS:example.org"
 certificate "Subject-Alt-Name" split "," count == 2
+certificate "Value" startsWith "-----BEGIN CERTIFICATE-----"
 ```
 
 [Doc](https://hurl.dev/docs/asserting-response.html#ssl-certificate-assert)
@@ -1790,7 +1791,7 @@ Please follow the [contrib on Windows section].
 [star Hurl on GitHub]: https://github.com/Orange-OpenSource/hurl/stargazers
 [HTML]: /docs/standalone/hurl-8.0.0.html
 [PDF]: /docs/standalone/hurl-8.0.0.pdf
-[Markdown]: https://hurl.dev/docs/standalone/hurl-8.0.0.html
+[Markdown]: /docs/standalone/hurl-8.0.0.md
 [JSON body]: https://hurl.dev/docs/request.html#json-body
 [XML body]: https://hurl.dev/docs/request.html#xml-body
 [XML multiline string body]: https://hurl.dev/docs/request.html#multiline-string-body

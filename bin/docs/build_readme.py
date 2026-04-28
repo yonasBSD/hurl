@@ -195,7 +195,7 @@ def main(dest: str) -> int:
     readme_md.extend(body_md)
     readme = readme_md.to_text()
     # TODO: extract version here
-    version = "7.1.0"
+    version = "8.0.0"
     readme = replace(text=readme, dest=dest, version=version)
 
     print(readme)
